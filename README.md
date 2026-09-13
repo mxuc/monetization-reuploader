@@ -37,7 +37,7 @@ made for those people who don't want to manually replace 500 monetization ids
 ### 1. install
 
 ```bash
-git clone https://github.com/your-username/roblox-monetization-reuploader.git
+git clone https://github.com/mxuc/roblox-monetization-reuploader.git
 
 cd roblox-monetization-reuploader
 
