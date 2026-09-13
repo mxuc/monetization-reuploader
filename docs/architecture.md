@@ -108,6 +108,4 @@ this was somehow a bug before i fixed it, now hopefully it doesnt do it again
 
 it's a cli, a local http server, and a roblox studio plugin working together to save you from manually replacing asset ids
 
-it works. that's the important part
-
 if something breaks, check the logs. if that doesn't help, good luck lmao
