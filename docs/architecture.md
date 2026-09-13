@@ -1,16 +1,15 @@
 # Architecture
 
-# this was created by FHL, vibe-coded shit lmao, thanks for chatgpt for helping me making ts
+this project is basically two things that works together:
 
-The tool consists of two components:
-1. **Node.js CLI & Mapping Server** (`server/`): Handles Open Cloud API interaction, asset fetching, reuploading, and caching.
-2. **Roblox Studio Plugin** (`plugin/`): Connects to the local mapping server and updates script references in the place file.
+1. **Node.js CLI & Mapping Server** (`server/`): does the roblox api stuff, uploads assets, and keeps track of mappings
+2. **Roblox Studio Plugin** (`plugin/`): talks to the local server and replaces the old asset ids in your game
 
 ---
 
 ## 1. Node.js Server & CLI
 
-```
+```text
 CLI / User Input
        │
        ▼
@@ -31,26 +30,84 @@ CLI / User Input
 └──────────────────┘
 ```
 
-### Modules
+### modules
 
-- **`index.js`**: CLI entry point. Prompts for target Universe ID and asset IDs, coordinates the pipeline, and reports results.
-- **`roblox.js`**: Roblox API client.
-  - Probes endpoints to detect whether an ID is a Game Pass or Developer Product.
-  - Fetches metadata (name, description, price, sale status, managed pricing flags).
-  - Downloads Game Pass icons into memory.
-  - Re-creates assets in the target universe via Open Cloud API.
-- **`queue.js`**: Task runner with concurrency limiting (default 2) and exponential backoff retries for transient errors (429, 5xx, network drops).
-- **`cache.js`**: Persistent cache (`mappings.json`) keyed by `sourceId:targetUniverseId` to prevent duplicate re-uploads.
-- **`server.js`**: Lightweight HTTP server listening on `127.0.0.1:8082` with CORS headers enabled so Roblox Studio can fetch resolved mappings.
-- **`config.js`**: Loads API key priority: `process.env` → `.env` → `config.json`.
-- **`auth.js`**: Interactive prompt fallback to save the API key to `config.json` if missing.
-- **`logger.js`**: Console output with optional `--debug` flag for full HTTP request/response payloads.
+* **`index.js`**: starts the cli, asks for the target universe and asset ids, and runs the whole thing
+* **`roblox.js`**: talks to roblox apis
+  * checks whether an id is a game pass or developer product
+  * gets asset info like name, description, price, etc
+  * downloads game pass icons
+  * creates the assets in the target universe
+* **`queue.js`**: handles tasks with a concurrency limit of 2. also retries failed requests
+* **`cache.js`**: saves mappings to `mappings.json` so the same assets don't get uploaded again for no reason
+* **`server.js`**: runs a small local http server on `127.0.0.1:8082` so the studio plugin can fetch the mappings
+* **`config.js`**: loads the api key from environment variables, `.env`, or `config.json`
+* **`auth.js`**: asks for the api key if it's missing and saves it to `config.json`
+* **`logger.js`**: handles console logs. `--debug` makes it yap about http requests and responses
 
 ---
 
 ## 2. Roblox Studio Plugin
 
-- **Source**: `plugin/reuploader.lua` (compiled to `reuploader.rbxmx` via `plugin/build.js`).
-- **Communication**: Queries `http://127.0.0.1:8082/mappings` via `HttpService:GetAsync`.
-- **Script Traversal**: Scans all standard container services (`Workspace`, `ReplicatedStorage`, `ServerScriptService`, `ServerStorage`, `StarterGui`, `StarterPack`, `StarterPlayer`, `ReplicatedFirst`).
-- **ID Replacement**: Uses `ScriptEditorService:UpdateSourceAsync` with Lua frontier patterns (`%f[%d]<id>%f[%D]`) to match exact digit boundaries, preventing accidental partial replacements.
+* **source**: `plugin/reuploader.lua`
+* **compiled plugin**: `plugin/reuploader.rbxmx`
+* **build script**: `plugin/build.js`
+
+### how it talks to the cli
+
+the plugin sends a request to:
+
+```text
+http://127.0.0.1:8082/mappings
+```
+
+using `HttpService:GetAsync`.
+
+the cli needs to be running so the plugin can get the mappings
+
+### script scanning
+
+the plugin scans these services:
+
+* `Workspace`
+* `ReplicatedStorage`
+* `ServerScriptService`
+* `ServerStorage`
+* `StarterGui`
+* `StarterPack`
+* `StarterPlayer`
+* `ReplicatedFirst`
+
+### id replacement
+
+uses:
+
+```lua
+%f[%d]<id>%f[%D]
+```
+
+this makes sure it matches the full asset id instead of accidentally replacing part of another number
+
+for example:
+
+```text
+123456
+```
+
+won't accidentally replace the `123456` inside:
+
+```text
+91234567
+```
+
+this was somehow a bug before i fixed it, now hopefully it doesnt do it again
+
+---
+
+## final note
+
+it's a cli, a local http server, and a roblox studio plugin working together to save you from manually replacing asset ids
+
+it works. that's the important part
+
+if something breaks, check the logs. if that doesn't help, good luck lmao
