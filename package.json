@@ -1,0 +1,19 @@
+{
+  "name": "roblox-monetization-reuploader",
+  "version": "1.0.0",
+  "description": "A simple command-line tool to reupload Roblox monetization assets (Game Passes & Developer Products)",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test \"tests/*.test.js\""
+  },
+  "keywords": [
+    "roblox",
+    "reuploader",
+    "gamepass",
+    "developer-product"
+  ],
+  "author": "",
+  "license": "MIT"
+}
