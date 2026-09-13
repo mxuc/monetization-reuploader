@@ -2,9 +2,9 @@
 
 reupload your game passes & developer products across your own roblox games, faster than doing it manually
 
-a command-line tool + roblox studio plugin that copies monetization assets and updates their ids in the game automatically
+a command-line tool + roblox studio plugin that reupload monetization ids and updates their ids in the game automatically, and completely open source
 
-made for those people who don't want to manually replace 500 monetization ids
+made for those people who don't want to manually replace 500 monetization ids xd
 
 ## what does it do?
 
